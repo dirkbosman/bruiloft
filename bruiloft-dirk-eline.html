@@ -262,21 +262,34 @@
   .taak-label.done { text-decoration: line-through; color: var(--muted); }
 
   /* Budget */
-  .budget-item {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    gap: 12px;
-    align-items: center;
-    padding: 10px 0;
+  .budget-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .budget-table th {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400; padding: 0 8px 10px 0; text-align: left;
     border-bottom: 1px solid var(--border);
-    font-size: 14px;
   }
-  .budget-item:last-child { border-bottom: none; padding-bottom: 0; }
-  .budget-item:first-child { padding-top: 0; }
-  .budget-naam { color: var(--ink); }
-  .budget-bedrag { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--rose); white-space: nowrap; }
-  .progress-wrap { width: 80px; height: 3px; background: var(--warm); border-radius: 999px; overflow: hidden; }
-  .progress-bar { height: 100%; background: var(--rose); border-radius: 999px; }
+  .budget-table th:last-child { padding-right: 0; }
+  .budget-table td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .budget-table tr:last-child td { border-bottom: none; }
+  .budget-table td:last-child { padding-right: 0; }
+  .amt { font-family: 'Cormorant Garamond', serif; font-size: 1rem; white-space: nowrap; text-align: right; }
+  .amt-begroot { color: var(--rose); }
+  .amt-betaald { color: var(--sage); }
+  .amt-open { color: var(--muted); }
+  .cat-block { margin-bottom: 1.5rem; }
+  .cat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 0;
+  }
+  .cat-title { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+  .cat-totals { display: flex; gap: 16px; font-size: 12px; }
+  .betaald-pct {
+    display: inline-block; font-size: 10px; letter-spacing: 0.08em;
+    padding: 1px 6px; border-radius: 2px; margin-left: 8px;
+    background: var(--sage-light); color: #4a6e4a;
+  }
+  .progress-wrap { height: 3px; background: var(--warm); border-radius: 999px; overflow: hidden; margin-top: 4px; }
+  .progress-bar { height: 100%; background: var(--sage); border-radius: 999px; transition: width 0.3s; }
 
   /* Gasten */
   .gasten-table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -378,20 +391,33 @@
       <span class="section-sub" id="budget-sub"></span>
     </div>
     <div class="metrics" id="budget-metrics"></div>
-    <div class="add-bar">
-      <input type="text" id="budget-naam" placeholder="Omschrijving..." />
-      <input type="number" id="budget-bedrag" placeholder="€ Bedrag" style="max-width:110px" />
-      <select id="budget-cat" style="max-width:130px">
+
+    <div class="add-bar" style="flex-wrap:wrap; gap:6px; margin-bottom:0.75rem">
+      <input type="text" id="budget-naam" placeholder="Omschrijving..." style="flex:2; min-width:140px" />
+      <select id="budget-cat" style="flex:1; min-width:110px">
+        <option value="Formeel">Formeel</option>
         <option value="Locatie">Locatie</option>
-        <option value="Catering">Catering</option>
+        <option value="Fotograaf">Fotograaf</option>
         <option value="Kleding">Kleding</option>
+        <option value="Aankleding">Aankleding</option>
         <option value="Muziek">Muziek</option>
-        <option value="Foto & Video">Foto & Video</option>
+        <option value="Drukwerk">Drukwerk</option>
+        <option value="Bedankjes">Bedankjes</option>
+        <option value="Ringen">Ringen</option>
+        <option value="Auto">Auto</option>
+        <option value="Hotel">Hotel</option>
         <option value="Overig">Overig</option>
       </select>
+    </div>
+    <div class="add-bar" style="flex-wrap:wrap; gap:6px; margin-bottom:1.5rem">
+      <input type="number" id="budget-aantal" placeholder="Aantal (opt.)" style="flex:1; min-width:90px" />
+      <input type="number" id="budget-tarief" placeholder="Tarief (opt.)" style="flex:1; min-width:90px" />
+      <input type="number" id="budget-bedrag" placeholder="€ Bedrag" style="flex:1; min-width:90px" />
+      <input type="number" id="budget-betaald" placeholder="€ Betaald" style="flex:1; min-width:90px" />
       <button class="btn btn-primary" onclick="addBudget()">+ Voeg toe</button>
     </div>
-    <div class="card" id="budget-lijst"></div>
+
+    <div id="budget-lijst"></div>
   </div>
 
   <!-- GASTEN -->
@@ -538,36 +564,102 @@ function toggleTaak(id) { data.taken = data.taken.map(t => t.id===id ? {...t, do
 function delTaak(id) { if (!confirm('Taak verwijderen?')) return; data.taken = data.taken.filter(t => t.id!==id); save(); renderTaken(); }
 
 // --- BUDGET ---
+const BUDGET_CATS = ['Formeel','Locatie','Fotograaf','Kleding','Aankleding','Muziek','Drukwerk','Bedankjes','Ringen','Auto','Hotel','Overig'];
+
+const defaultBudget = [
+  {id:100, naam:'Huur Stadsgehoorzaal + Burgerlijk Huwelijk + Kerkelijke inzegening + Administratie', cat:'Formeel', aantal:null, tarief:null, bedrag:1615.88, betaald:0},
+  {id:101, naam:'Locatie (diner & catering)', cat:'Locatie', aantal:null, tarief:null, bedrag:6901.55, betaald:1646.25},
+  {id:102, naam:"Foto's + fotoboek", cat:'Fotograaf', aantal:null, tarief:null, bedrag:2300, betaald:750},
+  {id:103, naam:'Bruidsjurk', cat:'Kleding', aantal:null, tarief:null, bedrag:2500, betaald:350},
+  {id:104, naam:'Trouwpak', cat:'Kleding', aantal:null, tarief:null, bedrag:1750, betaald:0},
+  {id:105, naam:'Haar & make-up', cat:'Kleding', aantal:null, tarief:null, bedrag:500, betaald:0},
+  {id:106, naam:'Bruidsboeket + Diversen', cat:'Aankleding', aantal:null, tarief:null, bedrag:200, betaald:0},
+  {id:107, naam:'DJ', cat:'Muziek', aantal:null, tarief:null, bedrag:900, betaald:0},
+  {id:108, naam:'Trouwkaart', cat:'Drukwerk', aantal:null, tarief:null, bedrag:170, betaald:0},
+  {id:109, naam:'Bedankjes', cat:'Bedankjes', aantal:null, tarief:null, bedrag:200, betaald:0},
+  {id:110, naam:'Ringen', cat:'Ringen', aantal:2, tarief:1000, bedrag:2500, betaald:0},
+  {id:111, naam:'Auto', cat:'Auto', aantal:null, tarief:null, bedrag:1000, betaald:0},
+  {id:112, naam:'Hotel', cat:'Hotel', aantal:null, tarief:null, bedrag:640, betaald:0},
+];
+
 function renderBudget() {
-  const totaal = data.budget.reduce((a,i) => a+i.bedrag, 0);
-  const max = Math.max(...data.budget.map(i => i.bedrag), 1);
+  if (!data.budget.length) data.budget = defaultBudget.map(i => ({...i}));
+
+  const totaalBegroot = data.budget.reduce((a,i) => a + (i.bedrag||0), 0);
+  const totaalBetaald = data.budget.reduce((a,i) => a + (i.betaald||0), 0);
+  const totaalOpen = totaalBegroot - totaalBetaald;
+  const pct = totaalBegroot ? Math.round(totaalBetaald / totaalBegroot * 100) : 0;
+
   document.getElementById('budget-sub').textContent = `${data.budget.length} posten`;
   document.getElementById('budget-metrics').innerHTML = `
-    <div class="metric"><span class="metric-val">€${totaal.toLocaleString('nl-NL')}</span><span class="metric-label">Totaal</span></div>
-    <div class="metric"><span class="metric-val">${data.budget.length}</span><span class="metric-label">Posten</span></div>
-    <div class="metric"><span class="metric-val">€${data.budget.length ? Math.round(totaal/data.budget.length).toLocaleString('nl-NL') : 0}</span><span class="metric-label">Gemiddeld</span></div>
+    <div class="metric"><span class="metric-val" style="color:var(--rose)">€${Math.round(totaalBegroot).toLocaleString('nl-NL')}</span><span class="metric-label">Begroot</span></div>
+    <div class="metric"><span class="metric-val" style="color:var(--sage)">€${Math.round(totaalBetaald).toLocaleString('nl-NL')}</span><span class="metric-label">Betaald</span></div>
+    <div class="metric"><span class="metric-val" style="color:var(--muted)">€${Math.round(totaalOpen).toLocaleString('nl-NL')}</span><span class="metric-label">Nog te betalen</span></div>
   `;
+
   const lijst = document.getElementById('budget-lijst');
-  if (!data.budget.length) { lijst.innerHTML = '<div class="empty">Nog geen uitgaven toegevoegd</div>'; return; }
-  lijst.innerHTML = data.budget.map(i => `
-    <div class="budget-item">
-      <span class="budget-naam">${i.naam} <span class="tag ${catKleur[i.cat]||''}" style="margin-left:6px">${i.cat}</span></span>
-      <div class="progress-wrap"><div class="progress-bar" style="width:${Math.round(i.bedrag/max*100)}%"></div></div>
-      <span class="budget-bedrag">€${i.bedrag.toLocaleString('nl-NL')}</span>
-      <button class="btn-icon" onclick="delBudget(${i.id})" title="Verwijder">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </button>
-    </div>
-  `).join('');
+  let html = '';
+
+  BUDGET_CATS.forEach(cat => {
+    const items = data.budget.filter(i => i.cat === cat);
+    if (!items.length) return;
+    const catBegroot = items.reduce((a,i) => a+(i.bedrag||0), 0);
+    const catBetaald = items.reduce((a,i) => a+(i.betaald||0), 0);
+    const catOpen = catBegroot - catBetaald;
+    const catPct = catBegroot ? Math.round(catBetaald/catBegroot*100) : 0;
+
+    html += `<div class="card cat-block" style="padding:0 1.25rem 0.5rem">
+      <div class="cat-header">
+        <span class="cat-title">${cat}</span>
+        <span class="cat-totals">
+          <span class="amt amt-betaald">€${Math.round(catBetaald).toLocaleString('nl-NL')} betaald</span>
+          <span class="amt amt-open">€${Math.round(catOpen).toLocaleString('nl-NL')} open</span>
+        </span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${catPct}%"></div></div>
+      <table class="budget-table" style="margin-top:4px">
+        <thead><tr>
+          <th>Omschrijving</th><th style="text-align:right">Opbouw</th><th style="text-align:right">Begroot</th><th style="text-align:right">Betaald</th><th></th>
+        </tr></thead>
+        <tbody>`;
+
+    items.forEach(i => {
+      const opbouw = (i.aantal && i.tarief) ? `${i.aantal} × €${i.tarief.toLocaleString('nl-NL')}` : '';
+      html += `<tr>
+        <td>${i.naam}</td>
+        <td class="amt" style="color:var(--muted); font-size:0.85rem">${opbouw}</td>
+        <td class="amt amt-begroot">€${(i.bedrag||0).toLocaleString('nl-NL')}</td>
+        <td class="amt amt-betaald">€${(i.betaald||0).toLocaleString('nl-NL')}</td>
+        <td style="text-align:right; padding-left:4px">
+          <button class="btn-icon" onclick="delBudget(${i.id})" title="Verwijder">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </td>
+      </tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+  });
+
+  if (!html) html = '<div class="empty">Nog geen posten</div>';
+  lijst.innerHTML = html;
 }
+
 function addBudget() {
   const naam = document.getElementById('budget-naam').value.trim();
-  const bedrag = parseFloat(document.getElementById('budget-bedrag').value);
   const cat = document.getElementById('budget-cat').value;
-  if (!naam || isNaN(bedrag) || bedrag <= 0) return;
-  data.budget.push({ id: data.nextId++, naam, cat, bedrag });
+  const aantal = parseFloat(document.getElementById('budget-aantal').value) || null;
+  const tarief = parseFloat(document.getElementById('budget-tarief').value) || null;
+  let bedrag = parseFloat(document.getElementById('budget-bedrag').value);
+  const betaald = parseFloat(document.getElementById('budget-betaald').value) || 0;
+  if (!naam) return;
+  if (isNaN(bedrag)) bedrag = (aantal && tarief) ? aantal * tarief : 0;
+  data.budget.push({ id: data.nextId++, naam, cat, aantal, tarief, bedrag, betaald });
   document.getElementById('budget-naam').value = '';
+  document.getElementById('budget-aantal').value = '';
+  document.getElementById('budget-tarief').value = '';
   document.getElementById('budget-bedrag').value = '';
+  document.getElementById('budget-betaald').value = '';
   save(); renderBudget();
 }
 function delBudget(id) { if (!confirm('Post verwijderen?')) return; data.budget = data.budget.filter(i => i.id!==id); save(); renderBudget(); }
