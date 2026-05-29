@@ -262,9 +262,9 @@
   .taak-label.done { text-decoration: line-through; color: var(--muted); }
 
   /* Budget */
-  .budget-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  .budget-table { width: 100%; border-collapse: collapse; font-size: 15px; table-layout: fixed; }
   .budget-table th {
-    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted); font-weight: 400; padding: 0 8px 10px 0; text-align: left;
     border-bottom: 1px solid var(--border);
   }
@@ -277,20 +277,24 @@
   .budget-table td:nth-child(2), .budget-table td:nth-child(3), .budget-table td:nth-child(4) { text-align: right; white-space: nowrap; }
 
   /* Mobiel: kaartweergave */
-  @media (max-width: 520px) {
+  @media (max-width: 768px) {
     .budget-table thead { display: none; }
     .budget-table, .budget-table tbody, .budget-table tr, .budget-table td { display: block; width: 100%; }
-    .budget-table tr { padding: 10px 0; border-bottom: 1px solid var(--border); position: relative; }
+    .budget-table tr { padding: 16px 0; border-bottom: 1px solid var(--border); position: relative; }
     .budget-table tr:last-child { border-bottom: none; }
     .budget-table td { padding: 0; border: none; text-align: left !important; white-space: normal; }
-    .budget-table td:nth-child(1) { font-size: 13px; color: var(--ink); margin-bottom: 6px; padding-right: 24px; }
+    .budget-table td:nth-child(1) { font-size: 18px; color: var(--ink); margin-bottom: 14px; padding-right: 36px; line-height: 1.5; }
     .budget-table td:nth-child(2), .budget-table td:nth-child(3), .budget-table td:nth-child(4) {
-      display: inline-block; width: auto; font-size: 12px; margin-right: 12px; text-align: left !important;
+      display: inline-block; width: 30%; font-size: 18px; text-align: left !important; vertical-align: top;
     }
-    .budget-table td:nth-child(2)::before { content: 'Begroot: '; color: var(--muted); font-size: 11px; }
-    .budget-table td:nth-child(3)::before { content: 'Betaald: '; color: var(--muted); font-size: 11px; }
-    .budget-table td:nth-child(4)::before { content: 'Open: '; color: var(--muted); font-size: 11px; }
-    .budget-table td:last-child { position: absolute; top: 10px; right: 0; display: block; width: auto; margin: 0; }
+    .budget-table td:nth-child(2)::before { content: 'Begroot'; display: block; color: var(--muted); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+    .budget-table td:nth-child(3)::before { content: 'Betaald'; display: block; color: var(--muted); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+    .budget-table td:nth-child(4)::before { content: 'Open'; display: block; color: var(--muted); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+    .budget-table td:last-child { position: absolute; top: 16px; right: 0; display: block; width: auto; margin: 0; }
+    .cat-block { margin-bottom: 1.5rem; }
+    .cat-header { padding: 12px 0 8px; }
+    .cat-title { font-size: 15px; }
+    .cat-totals { font-size: 15px; gap: 12px; }
   }
   .amt { font-family: 'Cormorant Garamond', serif; font-size: 1rem; white-space: nowrap; text-align: right; }
   .amt-begroot { color: var(--rose); }
