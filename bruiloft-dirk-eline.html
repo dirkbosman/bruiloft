@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dirk & Eline — 11.12.2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #faf7f2;
+    --warm: #f0e8d8;
+    --blush: #e8c4b8;
+    --rose: #c4736a;
+    --deep: #7a3d38;
+    --ink: #2c1f1e;
+    --muted: #8a7570;
+    --sage: #8a9e8a;
+    --sage-light: #d4e0d4;
+    --gold: #c4a862;
+    --gold-light: #f0e4c0;
+    --border: rgba(44,31,30,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    font-weight: 300;
+  }
+
+  /* Header */
+  .hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-ornament {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    letter-spacing: 0.05em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .hero h1 span { color: var(--rose); font-style: italic; }
+  .hero-date {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .countdown {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .countdown-unit { text-align: center; }
+  .countdown-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--rose);
+    display: block;
+    line-height: 1;
+  }
+  .countdown-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Nav */
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-btn {
+    padding: 0.9rem 1.8rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn.active {
+    color: var(--rose);
+    border-bottom-color: var(--rose);
+  }
+  .nav-btn:hover:not(.active) { color: var(--ink); }
+
+  /* Main */
+  main { max-width: 700px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Cards & inputs */
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 10px;
+  }
+  .add-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    align-items: center;
+  }
+  input[type=text], input[type=number], select, textarea {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 14px;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: #fff;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--rose); }
+  .add-bar input, .add-bar select { width: auto; flex: 1; }
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 9px 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--rose);
+    color: #fff;
+    border: 1px solid var(--rose);
+  }
+  .btn-primary:hover { background: var(--deep); border-color: var(--deep); }
+  .btn-ghost {
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--ink); border-color: var(--ink); }
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-size: 16px;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+  }
+  .btn-icon:hover { color: var(--deep); background: var(--warm); }
+
+  /* Section headers */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.25rem;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .section-sub { font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* Metrics */
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .metric {
+    background: var(--warm);
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .metric-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: var(--rose);
+    display: block;
+  }
+  .metric-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: var(--warm);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .tag-rose { background: #fceae8; color: var(--deep); border-color: var(--blush); }
+  .tag-sage { background: var(--sage-light); color: #4a6e4a; border-color: #a8c4a8; }
+  .tag-gold { background: var(--gold-light); color: #7a6020; border-color: #d4bc82; }
+
+  /* Taken */
+  .taak-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .taak-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .taak-row:first-child { padding-top: 0; }
+  .check {
+    width: 18px; height: 18px; flex-shrink: 0;
+    border: 1px solid var(--blush);
+    border-radius: 2px;
+    cursor: pointer;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .check.done { background: var(--sage); border-color: var(--sage); }
+  .check svg { display: none; }
+  .check.done svg { display: block; }
+  .taak-label { flex: 1; font-size: 14px; }
+  .taak-label.done { text-decoration: line-through; color: var(--muted); }
+
+  /* Budget */
+  .budget-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .budget-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .budget-item:first-child { padding-top: 0; }
+  .budget-naam { color: var(--ink); }
+  .budget-bedrag { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--rose); white-space: nowrap; }
+  .progress-wrap { width: 80px; height: 3px; background: var(--warm); border-radius: 999px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--rose); border-radius: 999px; }
+
+  /* Gasten */
+  .gasten-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .gasten-table th {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400; padding: 0 0 10px; text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .gasten-table td { padding: 10px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .gasten-table tr:last-child td { border-bottom: none; }
+  .rsvp-badge {
+    display: inline-block;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 2px;
+  }
+  .rsvp-ja { background: var(--sage-light); color: #4a6e4a; }
+  .rsvp-nee { background: #fceae8; color: var(--deep); }
+  .rsvp-af { background: var(--warm); color: var(--muted); }
+
+  /* Sync bar */
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    background: var(--warm);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .sync-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    display: inline-block; margin-right: 6px;
+    background: var(--sage);
+  }
+  .sync-dot.syncing { background: var(--gold); animation: pulse 1s infinite; }
+  .sync-dot.error { background: var(--rose); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 14px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; }
+
+  @media (max-width: 480px) {
+    .add-bar { flex-wrap: wrap; }
+    .add-bar input, .add-bar select { min-width: 0; }
+    .metrics { grid-template-columns: repeat(3,1fr); }
+    .nav-btn { padding: 0.8rem 1rem; font-size: 11px; }
+    .budget-item { grid-template-columns: 1fr auto auto; }
+    .budget-item .progress-wrap { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sync-bar">
+  <span><span class="sync-dot" id="sync-dot"></span><span id="sync-status">Lokaal opgeslagen</span></span>
+  <span id="sync-time"></span>
+</div>
+
+<header class="hero">
+  <span class="hero-ornament">trouwen</span>
+  <h1>Dirk <span>&</span> Eline</h1>
+  <span class="hero-date">11 · 12 · 2026</span>
+  <div class="countdown" id="countdown"></div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showTab('taken',this)">Taken</button>
+  <button class="nav-btn" onclick="showTab('budget',this)">Budget</button>
+  <button class="nav-btn" onclick="showTab('gasten',this)">Gasten</button>
+</nav>
+
+<main>
+
+  <!-- TAKEN -->
+  <div class="section active" id="tab-taken">
+    <div class="section-header">
+      <span class="section-title">Taakenlijst</span>
+      <span class="section-sub" id="taken-voortgang"></span>
+    </div>
+    <div class="add-bar">
+      <input type="text" id="taak-input" placeholder="Nieuwe taak toevoegen..." />
+      <select id="taak-cat" style="max-width:130px">
+        <option value="locatie">Locatie</option>
+        <option value="catering">Catering</option>
+        <option value="kleding">Kleding</option>
+        <option value="muziek">Muziek</option>
+        <option value="administratie">Administratie</option>
+        <option value="overig">Overig</option>
+      </select>
+      <button class="btn btn-primary" onclick="addTaak()">+ Voeg toe</button>
+    </div>
+    <div class="card" id="taken-lijst"></div>
+  </div>
+
+  <!-- BUDGET -->
+  <div class="section" id="tab-budget">
+    <div class="section-header">
+      <span class="section-title">Budget</span>
+      <span class="section-sub" id="budget-sub"></span>
+    </div>
+    <div class="metrics" id="budget-metrics"></div>
+    <div class="add-bar">
+      <input type="text" id="budget-naam" placeholder="Omschrijving..." />
+      <input type="number" id="budget-bedrag" placeholder="€ Bedrag" style="max-width:110px" />
+      <select id="budget-cat" style="max-width:130px">
+        <option value="Locatie">Locatie</option>
+        <option value="Catering">Catering</option>
+        <option value="Kleding">Kleding</option>
+        <option value="Muziek">Muziek</option>
+        <option value="Foto & Video">Foto & Video</option>
+        <option value="Overig">Overig</option>
+      </select>
+      <button class="btn btn-primary" onclick="addBudget()">+ Voeg toe</button>
+    </div>
+    <div class="card" id="budget-lijst"></div>
+  </div>
+
+  <!-- GASTEN -->
+  <div class="section" id="tab-gasten">
+    <div class="section-header">
+      <span class="section-title">Gastenlijst</span>
+    </div>
+    <div class="metrics" id="gasten-metrics"></div>
+    <div class="add-bar">
+      <input type="text" id="gast-naam" placeholder="Naam gast of stel..." />
+      <select id="gast-tafel" style="max-width:110px">
+        <option value="">Geen tafel</option>
+        <option value="1">Tafel 1</option>
+        <option value="2">Tafel 2</option>
+        <option value="3">Tafel 3</option>
+        <option value="4">Tafel 4</option>
+        <option value="5">Tafel 5</option>
+        <option value="6">Tafel 6</option>
+      </select>
+      <select id="gast-rsvp" style="max-width:120px">
+        <option value="af">Afwachten</option>
+        <option value="ja">Bevestigd</option>
+        <option value="nee">Afgemeld</option>
+      </select>
+      <button class="btn btn-primary" onclick="addGast()">+ Voeg toe</button>
+    </div>
+    <div class="card">
+      <table class="gasten-table">
+        <thead><tr>
+          <th>Naam</th><th>Tafel</th><th>RSVP</th><th></th>
+        </tr></thead>
+        <tbody id="gasten-lijst"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const STORAGE_KEY = 'bruiloft_dirk_eline_v1';
+
+let data = {
+  taken: [],
+  budget: [],
+  gasten: [],
+  nextId: 1
+};
+
+function load() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) data = JSON.parse(saved);
+  } catch(e) {}
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    setSyncStatus('opgeslagen');
+  } catch(e) {
+    setSyncStatus('fout');
+  }
+}
+
+function setSyncStatus(state) {
+  const dot = document.getElementById('sync-dot');
+  const status = document.getElementById('sync-status');
+  const time = document.getElementById('sync-time');
+  dot.className = 'sync-dot';
+  if (state === 'opgeslagen') {
+    status.textContent = 'Lokaal opgeslagen';
+    const now = new Date();
+    time.textContent = now.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
+  } else if (state === 'fout') {
+    dot.classList.add('error');
+    status.textContent = 'Opslaan mislukt';
+  }
+}
+
+// Countdown
+function renderCountdown() {
+  const wedding = new Date('2026-12-11T12:00:00');
+  const now = new Date();
+  const diff = wedding - now;
+  if (diff <= 0) { document.getElementById('countdown').innerHTML = '<span style="font-family:Cormorant Garamond,serif;font-style:italic;color:var(--rose);font-size:1.2rem">Het is zover! 🎉</span>'; return; }
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const mins = Math.floor((diff % 3600000) / 60000);
+  document.getElementById('countdown').innerHTML = `
+    <div class="countdown-unit"><span class="countdown-num">${days}</span><span class="countdown-label">dagen</span></div>
+    <div class="countdown-unit"><span class="countdown-num">${hours}</span><span class="countdown-label">uur</span></div>
+    <div class="countdown-unit"><span class="countdown-num">${mins}</span><span class="countdown-label">min</span></div>
+  `;
+}
+renderCountdown();
+setInterval(renderCountdown, 60000);
+
+// Tabs
+function showTab(name, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name==='taken') renderTaken();
+  if (name==='budget') renderBudget();
+  if (name==='gasten') renderGasten();
+}
+
+// Key helpers
+function keydown(e, fn) { if (e.key === 'Enter') fn(); }
+document.getElementById('taak-input').addEventListener('keydown', e => keydown(e, addTaak));
+document.getElementById('gast-naam').addEventListener('keydown', e => keydown(e, addGast));
+
+const catKleur = { locatie:'tag-rose', catering:'tag-sage', kleding:'tag-rose', muziek:'tag-gold', administratie:'', overig:'', Locatie:'tag-rose', Catering:'tag-sage', Kleding:'tag-rose', Muziek:'tag-gold', 'Foto & Video':'tag-gold', Overig:'' };
+
+// --- TAKEN ---
+function renderTaken() {
+  const lijst = document.getElementById('taken-lijst');
+  const done = data.taken.filter(t => t.done).length;
+  document.getElementById('taken-voortgang').textContent = `${done} van ${data.taken.length} klaar`;
+  if (!data.taken.length) { lijst.innerHTML = '<div class="empty">Nog geen taken toegevoegd</div>'; return; }
+  lijst.innerHTML = data.taken.map(t => `
+    <div class="taak-row">
+      <div class="check ${t.done?'done':''}" onclick="toggleTaak(${t.id})" title="${t.done?'Markeer ongedaan':'Markeer klaar'}">
+        <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="taak-label ${t.done?'done':''}">${t.label}</span>
+      <span class="tag ${catKleur[t.cat]||''}">${t.cat}</span>
+      <button class="btn-icon" onclick="delTaak(${t.id})" title="Verwijder">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+function addTaak() {
+  const v = document.getElementById('taak-input').value.trim();
+  const c = document.getElementById('taak-cat').value;
+  if (!v) return;
+  data.taken.push({ id: data.nextId++, label: v, cat: c, done: false });
+  document.getElementById('taak-input').value = '';
+  save(); renderTaken();
+}
+function toggleTaak(id) { data.taken = data.taken.map(t => t.id===id ? {...t, done:!t.done} : t); save(); renderTaken(); }
+function delTaak(id) { if (!confirm('Taak verwijderen?')) return; data.taken = data.taken.filter(t => t.id!==id); save(); renderTaken(); }
+
+// --- BUDGET ---
+function renderBudget() {
+  const totaal = data.budget.reduce((a,i) => a+i.bedrag, 0);
+  const max = Math.max(...data.budget.map(i => i.bedrag), 1);
+  document.getElementById('budget-sub').textContent = `${data.budget.length} posten`;
+  document.getElementById('budget-metrics').innerHTML = `
+    <div class="metric"><span class="metric-val">€${totaal.toLocaleString('nl-NL')}</span><span class="metric-label">Totaal</span></div>
+    <div class="metric"><span class="metric-val">${data.budget.length}</span><span class="metric-label">Posten</span></div>
+    <div class="metric"><span class="metric-val">€${data.budget.length ? Math.round(totaal/data.budget.length).toLocaleString('nl-NL') : 0}</span><span class="metric-label">Gemiddeld</span></div>
+  `;
+  const lijst = document.getElementById('budget-lijst');
+  if (!data.budget.length) { lijst.innerHTML = '<div class="empty">Nog geen uitgaven toegevoegd</div>'; return; }
+  lijst.innerHTML = data.budget.map(i => `
+    <div class="budget-item">
+      <span class="budget-naam">${i.naam} <span class="tag ${catKleur[i.cat]||''}" style="margin-left:6px">${i.cat}</span></span>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${Math.round(i.bedrag/max*100)}%"></div></div>
+      <span class="budget-bedrag">€${i.bedrag.toLocaleString('nl-NL')}</span>
+      <button class="btn-icon" onclick="delBudget(${i.id})" title="Verwijder">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+function addBudget() {
+  const naam = document.getElementById('budget-naam').value.trim();
+  const bedrag = parseFloat(document.getElementById('budget-bedrag').value);
+  const cat = document.getElementById('budget-cat').value;
+  if (!naam || isNaN(bedrag) || bedrag <= 0) return;
+  data.budget.push({ id: data.nextId++, naam, cat, bedrag });
+  document.getElementById('budget-naam').value = '';
+  document.getElementById('budget-bedrag').value = '';
+  save(); renderBudget();
+}
+function delBudget(id) { if (!confirm('Post verwijderen?')) return; data.budget = data.budget.filter(i => i.id!==id); save(); renderBudget(); }
+
+// --- GASTEN ---
+function renderGasten() {
+  const ja = data.gasten.filter(g => g.rsvp==='ja').length;
+  const nee = data.gasten.filter(g => g.rsvp==='nee').length;
+  const af = data.gasten.filter(g => g.rsvp==='af').length;
+  document.getElementById('gasten-metrics').innerHTML = `
+    <div class="metric"><span class="metric-val">${ja}</span><span class="metric-label">Bevestigd</span></div>
+    <div class="metric"><span class="metric-val">${af}</span><span class="metric-label">Afwachten</span></div>
+    <div class="metric"><span class="metric-val">${nee}</span><span class="metric-label">Afgemeld</span></div>
+  `;
+  const lijst = document.getElementById('gasten-lijst');
+  if (!data.gasten.length) { lijst.innerHTML = '<tr><td colspan="4"><div class="empty">Nog geen gasten toegevoegd</div></td></tr>'; return; }
+  lijst.innerHTML = data.gasten.map(g => `
+    <tr>
+      <td>${g.naam}</td>
+      <td style="color:var(--muted)">${g.tafel ? 'Tafel '+g.tafel : '—'}</td>
+      <td><span class="rsvp-badge rsvp-${g.rsvp}">${g.rsvp==='ja'?'Bevestigd':g.rsvp==='nee'?'Afgemeld':'Afwachten'}</span></td>
+      <td style="text-align:right">
+        <button class="btn-icon" onclick="delGast(${g.id})" title="Verwijder">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+function addGast() {
+  const naam = document.getElementById('gast-naam').value.trim();
+  const tafel = document.getElementById('gast-tafel').value;
+  const rsvp = document.getElementById('gast-rsvp').value;
+  if (!naam) return;
+  data.gasten.push({ id: data.nextId++, naam, tafel, rsvp });
+  document.getElementById('gast-naam').value = '';
+  save(); renderGasten();
+}
+function delGast(id) { if (!confirm('Gast verwijderen?')) return; data.gasten = data.gasten.filter(g => g.id!==id); save(); renderGasten(); }
+
+// Init
+load();
+renderTaken();
+</script>
+</body>
+</html>
