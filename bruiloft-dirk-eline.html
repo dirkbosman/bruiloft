@@ -262,14 +262,16 @@
   .taak-label.done { text-decoration: line-through; color: var(--muted); }
 
   /* Budget */
-  .budget-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .budget-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
   .budget-table th {
     font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--muted); font-weight: 400; padding: 0 8px 10px 0; text-align: left;
     border-bottom: 1px solid var(--border);
   }
-  .budget-table th:last-child { padding-right: 0; }
-  .budget-table td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .budget-table th:nth-child(1) { width: 44%; }
+  .budget-table th:nth-child(2), .budget-table th:nth-child(3), .budget-table th:nth-child(4) { width: 17%; text-align: right; }
+  .budget-table th:last-child { width: 5%; padding-right: 0; }
+  .budget-table td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--border); vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .budget-table tr:last-child td { border-bottom: none; }
   .budget-table td:last-child { padding-right: 0; }
   .amt { font-family: 'Cormorant Garamond', serif; font-size: 1rem; white-space: nowrap; text-align: right; }
@@ -331,6 +333,31 @@
 
   .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 14px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; }
 
+  /* Categorie-tegels */
+  .cat-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .cat-tile {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .cat-tile:hover { border-color: var(--rose); background: #fdf8f7; }
+  .cat-tile-naam { font-size: 13px; font-weight: 400; letter-spacing: 0.05em; color: var(--ink); margin-bottom: 6px; }
+  .cat-tile-score {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    color: var(--rose);
+    display: block;
+    line-height: 1;
+  }
+  .cat-tile-score.done { color: var(--sage); }
+  .cat-tile-bar { height: 3px; background: var(--warm); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .cat-tile-fill { height: 100%; background: var(--rose); border-radius: 999px; transition: width 0.3s; }
+  .cat-tile-fill.done { background: var(--sage); }
+
   @media (max-width: 480px) {
     .add-bar { flex-wrap: wrap; }
     .add-bar input, .add-bar select { min-width: 0; }
@@ -365,23 +392,29 @@
 
   <!-- TAKEN -->
   <div class="section active" id="tab-taken">
-    <div class="section-header">
-      <span class="section-title">Taakenlijst</span>
-      <span class="section-sub" id="taken-voortgang"></span>
+    <!-- Categorieoverzicht -->
+    <div id="taken-overzicht">
+      <div class="section-header">
+        <span class="section-title">Takenlijst</span>
+        <span class="section-sub" id="taken-voortgang"></span>
+      </div>
+      <div id="taken-cats"></div>
     </div>
-    <div class="add-bar">
-      <input type="text" id="taak-input" placeholder="Nieuwe taak toevoegen..." />
-      <select id="taak-cat" style="max-width:130px">
-        <option value="locatie">Locatie</option>
-        <option value="catering">Catering</option>
-        <option value="kleding">Kleding</option>
-        <option value="muziek">Muziek</option>
-        <option value="administratie">Administratie</option>
-        <option value="overig">Overig</option>
-      </select>
-      <button class="btn btn-primary" onclick="addTaak()">+ Voeg toe</button>
+    <!-- Detail per categorie -->
+    <div id="taken-detail" style="display:none">
+      <div class="section-header" style="margin-bottom:0.75rem">
+        <button class="btn-icon" onclick="showTakenOverzicht()" style="margin-right:8px; font-size:18px" title="Terug">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="section-title" id="detail-titel"></span>
+        <span class="section-sub" id="detail-voortgang"></span>
+      </div>
+      <div class="add-bar" style="margin-bottom:1rem">
+        <input type="text" id="taak-input" placeholder="Nieuwe taak toevoegen..." />
+        <button class="btn btn-primary" onclick="addTaak()">+ Voeg toe</button>
+      </div>
+      <div class="card" id="taken-lijst"></div>
     </div>
-    <div class="card" id="taken-lijst"></div>
   </div>
 
   <!-- BUDGET -->
@@ -459,6 +492,152 @@
 <script>
 const STORAGE_KEY = 'bruiloft_dirk_eline_v1';
 
+const defaultTaken = [
+  // ZSM / Mei - Juni — Ringen
+  {id:200, label:'Trouwringen uitzoeken', cat:'mei_ringen', done:false},
+  {id:201, label:'Ringmaten laten meten', cat:'mei_ringen', done:false},
+  {id:202, label:'Gravure bedenken', cat:'mei_ringen', done:false},
+  {id:203, label:'Ringen bestellen', cat:'mei_ringen', done:false},
+  // Pak bruidegom
+  {id:204, label:'Winkel(s) uitzoeken', cat:'mei_pak', done:false},
+  {id:205, label:'Afspraak plannen', cat:'mei_pak', done:false},
+  {id:206, label:'Pak uitzoeken/kopen', cat:'mei_pak', done:false},
+  {id:207, label:'Schoenen + accessoires kiezen', cat:'mei_pak', done:false},
+  {id:208, label:'Eventuele aanpassingen plannen', cat:'mei_pak', done:false},
+  // Haar & make-up
+  {id:209, label:'Haar & make-up artist boeken', cat:'mei_haar', done:false},
+  {id:210, label:'Proefafspraak plannen', cat:'mei_haar', done:false},
+  // Nagels
+  {id:211, label:'Nagelstyliste zoeken', cat:'mei_nagels', done:false},
+  {id:212, label:'Inspiratie opslaan', cat:'mei_nagels', done:false},
+  {id:213, label:'Afspraak trouwweek plannen/reserveren', cat:'mei_nagels', done:false},
+  // Trouwvervoer
+  {id:214, label:'Porsche verhuur regelen', cat:'mei_vervoer', done:false},
+  {id:215, label:'Tijdsduur bepalen', cat:'mei_vervoer', done:false},
+  {id:216, label:'Reservering vastleggen', cat:'mei_vervoer', done:false},
+  // Accessoires bruid
+  {id:217, label:'Bruidsschoenen kopen', cat:'mei_accessoires', done:false},
+  {id:218, label:'Sieraden kiezen', cat:'mei_accessoires', done:false},
+  {id:219, label:'Lingerie kopen', cat:'mei_accessoires', done:false},
+  {id:220, label:'Eventueel sluier / haaraccessoire uitzoeken', cat:'mei_accessoires', done:false},
+  // Paspoort
+  {id:221, label:'Paspoort regelen', cat:'mei_paspoort', done:false},
+  // Bloemen
+  {id:222, label:'Bloemist zoeken / boeken', cat:'mei_bloemen', done:false},
+  {id:223, label:'Bruidsboeket stijl bepalen', cat:'mei_bloemen', done:false},
+  {id:224, label:'Kleuren bepalen', cat:'mei_bloemen', done:false},
+  {id:225, label:'Eventuele corsages bedenken', cat:'mei_bloemen', done:false},
+  // Uitnodigingen
+  {id:226, label:'Stijl uitnodigingen bepalen', cat:'mei_uitnodigingen', done:false},
+  {id:227, label:'Tekst schrijven', cat:'mei_uitnodigingen', done:false},
+  {id:228, label:'Adressen verzamelen/controleren', cat:'mei_uitnodigingen', done:false},
+  {id:229, label:'Ontwerper / drukker kiezen', cat:'mei_uitnodigingen', done:false},
+  // Ceremonie & kerk
+  {id:230, label:'Ideeën opschrijven voor BABS', cat:'mei_ceremonie', done:false},
+  {id:231, label:'Liedjes ceremonie bedenken', cat:'mei_ceremonie', done:false},
+  {id:232, label:'Liedjes kerkdienst bedenken', cat:'mei_ceremonie', done:false},
+  {id:233, label:'Eventuele lezingen bedenken', cat:'mei_ceremonie', done:false},
+  // Ceremonie indeling
+  {id:234, label:'Bedenken hoe jullie willen zitten/staan', cat:'mei_ceremonie_ind', done:false},
+  {id:235, label:'Plek ouders/familie bepalen', cat:'mei_ceremonie_ind', done:false},
+  {id:236, label:'Indeling ceremonie bespreken met locatie', cat:'mei_ceremonie_ind', done:false},
+  // Fotografie
+  {id:237, label:"Lijst maken met groepsfoto's", cat:'mei_fotografie', done:false},
+  {id:238, label:'Fotolocaties bedenken', cat:'mei_fotografie', done:false},
+  // Juli - Augustus — Uitnodigingen
+  {id:239, label:'Uitnodigingen definitief maken', cat:'jul_uitnodigingen', done:false},
+  {id:240, label:'Uitnodigingen laten drukken', cat:'jul_uitnodigingen', done:false},
+  {id:241, label:'Postzegels halen', cat:'jul_uitnodigingen', done:false},
+  {id:242, label:'Uitnodigingen versturen', cat:'jul_uitnodigingen', done:false},
+  // DJ
+  {id:243, label:'Muziekstijl bespreken', cat:'jul_dj', done:false},
+  {id:244, label:'Openingsdans kiezen (optioneel)', cat:'jul_dj', done:false},
+  {id:245, label:'"Niet draaien" lijst maken', cat:'jul_dj', done:false},
+  // Abdij - details
+  {id:246, label:'Definitieve details diner bespreken', cat:'jul_abdij', done:false},
+  {id:247, label:'Eventuele dieetwensen verzamelen', cat:'jul_abdij', done:false},
+  {id:248, label:'Indeling tafels globaal bedenken', cat:'jul_abdij', done:false},
+  // Bedankjes
+  {id:249, label:'Idee bedenken voor bedankjes', cat:'jul_bedankjes', done:false},
+  {id:250, label:'Bedankjes bestellen/maken', cat:'jul_bedankjes', done:false},
+  // Versiering
+  {id:251, label:'Beslissen hoeveel decoratie jullie willen', cat:'jul_versiering', done:false},
+  {id:252, label:'Eventuele kaarsen / welkomstbord / naamkaartjes / kleine tafeldecoratie uitzoeken', cat:'jul_versiering', done:false},
+  // Spray tan
+  {id:253, label:'Proef spray tan plannen', cat:'jul_spraytan', done:false},
+  {id:254, label:'Beslissen of je dit wilt op trouwdag', cat:'jul_spraytan', done:false},
+  // September - Oktober — Dagplanning
+  {id:255, label:'Definitieve planning maken', cat:'sep_dagplanning', done:false},
+  {id:256, label:'Tijdschema delen met betrokkenen', cat:'sep_dagplanning', done:false},
+  // Fotograaf
+  {id:257, label:'Definitieve planning bespreken', cat:'sep_fotograaf', done:false},
+  {id:258, label:'Fotolijstje delen', cat:'sep_fotograaf', done:false},
+  // November — Haar & make-up
+  {id:259, label:'Proefafspraak doen', cat:'nov_haar', done:false},
+  {id:260, label:'Definitieve look bepalen', cat:'nov_haar', done:false},
+  // Bruidsjurk
+  {id:261, label:'Pasafspraak / laatste fitting', cat:'nov_bruidsjurk', done:false},
+  // Pak bruidegom
+  {id:262, label:'Laatste checks / passen', cat:'nov_pak', done:false},
+  // Bloemen
+  {id:263, label:'Definitieve bestelling doorgeven', cat:'nov_bloemen', done:false},
+  {id:264, label:'Ophaaltijd / levering bespreken', cat:'nov_bloemen', done:false},
+  // Nagels
+  {id:265, label:'Definitieve nagelstijl kiezen', cat:'nov_nagels', done:false},
+  {id:266, label:'Afspraak bevestigen', cat:'nov_nagels', done:false},
+  // Muziek
+  {id:267, label:'Ceremonie muziek definitief', cat:'nov_muziek', done:false},
+  {id:268, label:'Kerkmuziek definitief', cat:'nov_muziek', done:false},
+  {id:269, label:'Feestmuziek definitief', cat:'nov_muziek', done:false},
+  // Gasten & diner
+  {id:270, label:'Definitieve aantallen doorgeven', cat:'nov_gasten', done:false},
+  {id:271, label:'Dieetwensen doorgeven', cat:'nov_gasten', done:false},
+  // Persoonlijk
+  {id:272, label:'Geloften schrijven', cat:'nov_persoonlijk', done:false},
+  {id:273, label:'Eventuele speech schrijven', cat:'nov_persoonlijk', done:false},
+  // Laatste 2 weken — Noodpakket
+  {id:274, label:'Pleisters', cat:'lw_noodpakket', done:false},
+  {id:275, label:'Paracetamol', cat:'lw_noodpakket', done:false},
+  {id:276, label:'Deodorant', cat:'lw_noodpakket', done:false},
+  {id:277, label:'Lippenbalsem', cat:'lw_noodpakket', done:false},
+  {id:278, label:'Make-up bijwerken', cat:'lw_noodpakket', done:false},
+  {id:279, label:'Veiligheidsspeldjes', cat:'lw_noodpakket', done:false},
+  {id:280, label:'Tissues', cat:'lw_noodpakket', done:false},
+  // Rollen verdelen
+  {id:281, label:'Wie heeft de ringen', cat:'lw_rollen', done:false},
+  {id:282, label:'Wie helpt gasten', cat:'lw_rollen', done:false},
+  {id:283, label:'Wie is aanspreekpunt', cat:'lw_rollen', done:false},
+  // Draaiboek
+  {id:284, label:'Definitief draaiboek maken', cat:'lw_draaiboek', done:false},
+  {id:285, label:'Draaiboek delen met DJ, fotograaf, locaties en helpers', cat:'lw_draaiboek', done:false},
+  // Betalingen
+  {id:286, label:'Laatste facturen betalen', cat:'lw_betalingen', done:false},
+  // Beauty
+  {id:287, label:'Nagelafspraak', cat:'lw_beauty', done:false},
+  {id:288, label:'Eventuele spray tan', cat:'lw_beauty', done:false},
+  {id:289, label:'Wenkbrauwen / beauty afspraken', cat:'lw_beauty', done:false},
+  // Laatste checks
+  {id:290, label:'Leveranciers bevestigen', cat:'lw_checks', done:false},
+  {id:291, label:'Tijden nogmaals controleren', cat:'lw_checks', done:false},
+  // Trouwdag — Klaarleggen
+  {id:292, label:'Ringen klaarleggen', cat:'dag_klaarleggen', done:false},
+  {id:293, label:'Jurk/pak klaarhangen', cat:'dag_klaarleggen', done:false},
+  {id:294, label:'Tas inpakken', cat:'dag_klaarleggen', done:false},
+  // Trouwdag
+  {id:295, label:'Ringen mee', cat:'dag_trouwdag', done:false},
+  {id:296, label:'Telefoons/oplaadkabels mee', cat:'dag_trouwdag', done:false},
+  {id:297, label:'ID kaarten mee', cat:'dag_trouwdag', done:false},
+  // Extra
+  {id:298, label:"Paraplu's regelen (december!)", cat:'dag_extra', done:false},
+  {id:299, label:"Warme jas/cape voor buitenfoto's", cat:'dag_extra', done:false},
+  {id:300, label:'Muziekboxje voor ochtend (optioneel)', cat:'dag_extra', done:false},
+  {id:301, label:'Snacks/drinken in de ochtend', cat:'dag_extra', done:false},
+  {id:302, label:'Enveloppen / kaartenbox', cat:'dag_extra', done:false},
+  {id:303, label:'Pen voor gastenboek', cat:'dag_extra', done:false},
+  {id:304, label:'Gastenboek regelen', cat:'dag_extra', done:false},
+  {id:305, label:'Overzicht dieetwensen meenemen', cat:'dag_extra', done:false},
+];
+
 let data = {
   taken: [],
   budget: [],
@@ -531,37 +710,143 @@ function keydown(e, fn) { if (e.key === 'Enter') fn(); }
 document.getElementById('taak-input').addEventListener('keydown', e => keydown(e, addTaak));
 document.getElementById('gast-naam').addEventListener('keydown', e => keydown(e, addGast));
 
-const catKleur = { locatie:'tag-rose', catering:'tag-sage', kleding:'tag-rose', muziek:'tag-gold', administratie:'', overig:'', Locatie:'tag-rose', Catering:'tag-sage', Kleding:'tag-rose', Muziek:'tag-gold', 'Foto & Video':'tag-gold', Overig:'' };
+// Exacte structuur zoals Eline heeft opgesteld
+const TAKEN_CATS = [
+  // ZSM / Mei - Juni
+  {key:'mei_ringen', label:'Ringen', fase:'ZSM / Mei – Juni'},
+  {key:'mei_pak', label:'Pak bruidegom', fase:'ZSM / Mei – Juni'},
+  {key:'mei_haar', label:'Haar & make-up', fase:'ZSM / Mei – Juni'},
+  {key:'mei_nagels', label:'Nagels', fase:'ZSM / Mei – Juni'},
+  {key:'mei_vervoer', label:'Trouwvervoer', fase:'ZSM / Mei – Juni'},
+  {key:'mei_accessoires', label:'Accessoires bruid', fase:'ZSM / Mei – Juni'},
+  {key:'mei_paspoort', label:'Paspoort', fase:'ZSM / Mei – Juni'},
+  {key:'mei_bloemen', label:'Bloemen', fase:'ZSM / Mei – Juni'},
+  {key:'mei_uitnodigingen', label:'Uitnodigingen', fase:'ZSM / Mei – Juni'},
+  {key:'mei_ceremonie', label:'Ceremonie & kerk', fase:'ZSM / Mei – Juni'},
+  {key:'mei_ceremonie_ind', label:'Ceremonie indeling', fase:'ZSM / Mei – Juni'},
+  {key:'mei_fotografie', label:'Fotografie', fase:'ZSM / Mei – Juni'},
+  // Juli - Augustus
+  {key:'jul_uitnodigingen', label:'Uitnodigingen', fase:'Juli – Augustus'},
+  {key:'jul_dj', label:'DJ', fase:'Juli – Augustus'},
+  {key:'jul_abdij', label:'Abdij – details', fase:'Juli – Augustus'},
+  {key:'jul_bedankjes', label:'Bedankjes', fase:'Juli – Augustus'},
+  {key:'jul_versiering', label:'Versiering', fase:'Juli – Augustus'},
+  {key:'jul_spraytan', label:'Spray tan', fase:'Juli – Augustus'},
+  // September - Oktober
+  {key:'sep_dagplanning', label:'Dagplanning', fase:'September – Oktober'},
+  {key:'sep_fotograaf', label:'Fotograaf', fase:'September – Oktober'},
+  // November (doorlopend na sept-okt)
+  {key:'nov_haar', label:'Haar & make-up', fase:'November'},
+  {key:'nov_bruidsjurk', label:'Bruidsjurk', fase:'November'},
+  {key:'nov_pak', label:'Pak bruidegom', fase:'November'},
+  {key:'nov_bloemen', label:'Bloemen', fase:'November'},
+  {key:'nov_nagels', label:'Nagels', fase:'November'},
+  {key:'nov_muziek', label:'Muziek', fase:'November'},
+  {key:'nov_gasten', label:'Gasten & diner', fase:'November'},
+  {key:'nov_persoonlijk', label:'Persoonlijk', fase:'November'},
+  // Laatste 2 weken (doorlopend)
+  {key:'lw_noodpakket', label:'Noodpakket maken', fase:'Laatste 2 weken'},
+  {key:'lw_rollen', label:'Rollen verdelen', fase:'Laatste 2 weken'},
+  {key:'lw_draaiboek', label:'Draaiboek', fase:'Laatste 2 weken'},
+  {key:'lw_betalingen', label:'Betalingen', fase:'Laatste 2 weken'},
+  {key:'lw_beauty', label:'Beauty', fase:'Laatste 2 weken'},
+  {key:'lw_checks', label:'Laatste checks', fase:'Laatste 2 weken'},
+  // Trouwdag
+  {key:'dag_klaarleggen', label:'Klaarleggen', fase:'Trouwdag'},
+  {key:'dag_trouwdag', label:'Trouwdag', fase:'Trouwdag'},
+  {key:'dag_extra', label:'Extra: vergeet dit niet', fase:'Trouwdag'},
+];
+
+let activeCat = null;
 
 // --- TAKEN ---
 function renderTaken() {
+  if (!data.taken.length) data.taken = defaultTaken.map(t => ({...t}));
+  const totaalDone = data.taken.filter(t => t.done).length;
+  document.getElementById('taken-voortgang').textContent = `${totaalDone} van ${data.taken.length} klaar`;
+
+  // Groepeer per fase
+  const fases = [];
+  TAKEN_CATS.forEach(c => {
+    if (!fases.find(f => f.naam === c.fase)) fases.push({naam: c.fase, cats: []});
+    fases.find(f => f.naam === c.fase).cats.push(c);
+  });
+
+  const tilesEl = document.getElementById('taken-cats');
+  tilesEl.innerHTML = fases.map(fase => {
+    const tiles = fase.cats.map(c => {
+      const items = data.taken.filter(t => t.cat === c.key);
+      if (!items.length) return '';
+      const done = items.filter(t => t.done).length;
+      const pct = Math.round(done / items.length * 100);
+      const allDone = done === items.length;
+      return `<div class="cat-tile" onclick="openCat('${c.key}')">
+        <div class="cat-tile-naam">${c.label}</div>
+        <span class="cat-tile-score ${allDone?'done':''}">${done}/${items.length}</span>
+        <div class="cat-tile-bar"><div class="cat-tile-fill ${allDone?'done':''}" style="width:${pct}%"></div></div>
+      </div>`;
+    }).join('');
+    if (!tiles.trim()) return '';
+    return `<div style="margin-bottom:1.5rem">
+      <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:400">${fase.naam}</div>
+      <div class="cat-tiles">${tiles}</div>
+    </div>`;
+  }).join('');
+}
+
+function openCat(cat) {
+  activeCat = cat;
+  const catDef = TAKEN_CATS.find(c => c.key === cat);
+  document.getElementById('taken-overzicht').style.display = 'none';
+  document.getElementById('taken-detail').style.display = 'block';
+  document.getElementById('detail-titel').textContent = catDef ? catDef.label : cat;
+  renderDetail();
+}
+
+function showTakenOverzicht() {
+  activeCat = null;
+  document.getElementById('taken-detail').style.display = 'none';
+  document.getElementById('taken-overzicht').style.display = 'block';
+  renderTaken();
+}
+
+function renderDetail() {
+  const items = data.taken.filter(t => t.cat === activeCat);
+  const done = items.filter(t => t.done).length;
+  document.getElementById('detail-voortgang').textContent = `${done} van ${items.length} klaar`;
   const lijst = document.getElementById('taken-lijst');
-  const done = data.taken.filter(t => t.done).length;
-  document.getElementById('taken-voortgang').textContent = `${done} van ${data.taken.length} klaar`;
-  if (!data.taken.length) { lijst.innerHTML = '<div class="empty">Nog geen taken toegevoegd</div>'; return; }
-  lijst.innerHTML = data.taken.map(t => `
+  if (!items.length) { lijst.innerHTML = '<div class="empty">Nog geen taken in deze categorie</div>'; return; }
+  lijst.innerHTML = items.map(t => `
     <div class="taak-row">
       <div class="check ${t.done?'done':''}" onclick="toggleTaak(${t.id})" title="${t.done?'Markeer ongedaan':'Markeer klaar'}">
         <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <span class="taak-label ${t.done?'done':''}">${t.label}</span>
-      <span class="tag ${catKleur[t.cat]||''}">${t.cat}</span>
       <button class="btn-icon" onclick="delTaak(${t.id})" title="Verwijder">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
       </button>
     </div>
   `).join('');
 }
+
 function addTaak() {
   const v = document.getElementById('taak-input').value.trim();
-  const c = document.getElementById('taak-cat').value;
-  if (!v) return;
-  data.taken.push({ id: data.nextId++, label: v, cat: c, done: false });
+  if (!v || !activeCat) return;
+  data.taken.push({ id: data.nextId++, label: v, cat: activeCat, done: false });
   document.getElementById('taak-input').value = '';
-  save(); renderTaken();
+  save(); renderDetail();
 }
-function toggleTaak(id) { data.taken = data.taken.map(t => t.id===id ? {...t, done:!t.done} : t); save(); renderTaken(); }
-function delTaak(id) { if (!confirm('Taak verwijderen?')) return; data.taken = data.taken.filter(t => t.id!==id); save(); renderTaken(); }
+function toggleTaak(id) {
+  data.taken = data.taken.map(t => t.id===id ? {...t, done:!t.done} : t);
+  save();
+  if (activeCat) renderDetail(); else renderTaken();
+}
+function delTaak(id) {
+  if (!confirm('Taak verwijderen?')) return;
+  data.taken = data.taken.filter(t => t.id!==id);
+  save();
+  if (activeCat) renderDetail(); else renderTaken();
+}
 
 // --- BUDGET ---
 const BUDGET_CATS = ['Formeel','Locatie','Fotograaf','Kleding','Aankleding','Muziek','Drukwerk','Bedankjes','Ringen','Auto','Hotel','Overig'];
@@ -619,17 +904,18 @@ function renderBudget() {
       <div class="progress-wrap"><div class="progress-bar" style="width:${catPct}%"></div></div>
       <table class="budget-table" style="margin-top:4px">
         <thead><tr>
-          <th>Omschrijving</th><th style="text-align:right">Opbouw</th><th style="text-align:right">Begroot</th><th style="text-align:right">Betaald</th><th></th>
+          <th>Omschrijving</th><th style="text-align:right">Begroot</th><th style="text-align:right">Betaald</th><th style="text-align:right">Open</th><th></th>
         </tr></thead>
         <tbody>`;
 
     items.forEach(i => {
-      const opbouw = (i.aantal && i.tarief) ? `${i.aantal} × €${i.tarief.toLocaleString('nl-NL')}` : '';
+      const open = (i.bedrag||0) - (i.betaald||0);
+      const opbouwLabel = (i.aantal && i.tarief) ? ` <span style="font-size:11px;color:var(--muted);margin-left:4px">${i.aantal} × €${i.tarief.toLocaleString('nl-NL')}</span>` : '';
       html += `<tr>
-        <td>${i.naam}</td>
-        <td class="amt" style="color:var(--muted); font-size:0.85rem">${opbouw}</td>
+        <td>${i.naam}${opbouwLabel}</td>
         <td class="amt amt-begroot">€${(i.bedrag||0).toLocaleString('nl-NL')}</td>
         <td class="amt amt-betaald">€${(i.betaald||0).toLocaleString('nl-NL')}</td>
+        <td class="amt amt-open">€${open.toLocaleString('nl-NL')}</td>
         <td style="text-align:right; padding-left:4px">
           <button class="btn-icon" onclick="delBudget(${i.id})" title="Verwijder">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
