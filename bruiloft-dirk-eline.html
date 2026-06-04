@@ -392,6 +392,55 @@
     .cat-totals { gap: 10px; }
   }
 </style>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC-FvKJJzpAboEgz1OYPLidFobc",
+    authDomain: "bruiloft-dirk-eline.firebaseapp.com",
+    projectId: "bruiloft-dirk-eline",
+    storageBucket: "bruiloft-dirk-eline.firebasestorage.app",
+    messagingSenderId: "518899306516",
+    appId: "1:518899306516:web:93484a48219365"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const docRef = doc(db, "bruiloft", "data");
+
+  let isLoading = true;
+  let saveTimeout = null;
+
+  window.firebaseSave = function(dataObj) {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+      try {
+        setSyncStatus('syncing');
+        await setDoc(docRef, dataObj);
+        setSyncStatus('opgeslagen');
+      } catch(e) {
+        console.error(e);
+        setSyncStatus('fout');
+      }
+    }, 800);
+  };
+
+  onSnapshot(docRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const remote = snapshot.data();
+      if (JSON.stringify(remote) !== JSON.stringify(window.appData)) {
+        window.appData = remote;
+        if (!isLoading) {
+          renderTaken();
+          renderBudget();
+          renderGasten();
+        }
+      }
+    }
+    isLoading = false;
+  });
+</script>
 </head>
 <body>
 
@@ -675,14 +724,17 @@ function load() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) data = JSON.parse(saved);
   } catch(e) {}
+  window.appData = data;
 }
 
 function save() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+  if (window.firebaseSave) {
+    window.firebaseSave(data);
+  } else {
     setSyncStatus('opgeslagen');
-  } catch(e) {
-    setSyncStatus('fout');
   }
 }
 
@@ -692,12 +744,15 @@ function setSyncStatus(state) {
   const time = document.getElementById('sync-time');
   dot.className = 'sync-dot';
   if (state === 'opgeslagen') {
-    status.textContent = 'Lokaal opgeslagen';
+    status.textContent = 'Gesynchroniseerd';
     const now = new Date();
     time.textContent = now.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
+  } else if (state === 'syncing') {
+    dot.classList.add('syncing');
+    status.textContent = 'Opslaan...';
   } else if (state === 'fout') {
     dot.classList.add('error');
-    status.textContent = 'Opslaan mislukt';
+    status.textContent = 'Sync mislukt';
   }
 }
 
