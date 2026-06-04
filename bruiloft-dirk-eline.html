@@ -353,6 +353,18 @@
   .sync-dot.error { background: var(--rose); }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
+  /* Gastenboek */
+  .bericht-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+  }
+  .bericht-naam { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .bericht-tekst { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-style: italic; color: var(--ink); line-height: 1.5; }
+  .bericht-tijd { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
   .empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); font-size: 14px; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; }
 
   /* Categorie-tegels */
@@ -435,6 +447,7 @@
           renderTaken();
           renderBudget();
           renderGasten();
+          renderGastenboek();
         }
       }
     }
@@ -460,6 +473,7 @@
   <button class="nav-btn active" onclick="showTab('taken',this)">Taken</button>
   <button class="nav-btn" onclick="showTab('budget',this)">Budget</button>
   <button class="nav-btn" onclick="showTab('gasten',this)">Gasten</button>
+  <button class="nav-btn" onclick="showTab('gastenboek',this)">Gastenboek</button>
 </nav>
 
 <main>
@@ -561,6 +575,19 @@
     </div>
   </div>
 
+  <!-- GASTENBOEK -->
+  <div class="section" id="tab-gastenboek">
+    <div class="section-header">
+      <span class="section-title">Gastenboek</span>
+      <span class="section-sub" id="gastenboek-sub"></span>
+    </div>
+    <div class="add-bar">
+      <input type="text" id="gb-naam" placeholder="Naam..." style="max-width:160px" />
+      <input type="text" id="gb-bericht" placeholder="Schrijf een berichtje..." />
+      <button class="btn btn-primary" onclick="addBericht()">+ Voeg toe</button>
+    </div>
+    <div id="gastenboek-lijst"></div>
+  </div>
 </main>
 
 <script>
@@ -783,6 +810,7 @@ function showTab(name, btn) {
   if (name==='taken') renderTaken();
   if (name==='budget') renderBudget();
   if (name==='gasten') renderGasten();
+  if (name==='gastenboek') renderGastenboek();
 }
 
 // Key helpers
@@ -1065,6 +1093,49 @@ function addGast() {
   save(); renderGasten();
 }
 function delGast(id) { if (!confirm('Gast verwijderen?')) return; data.gasten = data.gasten.filter(g => g.id!==id); save(); renderGasten(); }
+
+// --- GASTENBOEK ---
+function renderGastenboek() {
+  document.getElementById('gastenboek-sub').textContent = `${data.gastenboek ? data.gastenboek.length : 0} berichten`;
+  const lijst = document.getElementById('gastenboek-lijst');
+  if (!data.gastenboek || !data.gastenboek.length) {
+    lijst.innerHTML = '<div class="empty">Nog geen berichten — schrijf het eerste!</div>';
+    return;
+  }
+  lijst.innerHTML = [...data.gastenboek].reverse().map(b => `
+    <div class="bericht-card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start">
+        <div>
+          <div class="bericht-naam">${b.naam || 'Anoniem'}</div>
+          <div class="bericht-tekst">${b.tekst}</div>
+          <div class="bericht-tijd">${b.tijd || ''}</div>
+        </div>
+        <button class="btn-icon" onclick="delBericht(${b.id})" title="Verwijder">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addBericht() {
+  const naam = document.getElementById('gb-naam').value.trim();
+  const tekst = document.getElementById('gb-bericht').value.trim();
+  if (!tekst) return;
+  if (!data.gastenboek) data.gastenboek = [];
+  const nu = new Date();
+  const tijd = nu.toLocaleDateString('nl-NL', {day:'numeric', month:'long', year:'numeric'}) + ' om ' + nu.toLocaleTimeString('nl-NL', {hour:'2-digit', minute:'2-digit'});
+  data.gastenboek.push({ id: data.nextId++, naam: naam || 'Anoniem', tekst, tijd });
+  document.getElementById('gb-naam').value = '';
+  document.getElementById('gb-bericht').value = '';
+  save(); renderGastenboek();
+}
+
+function delBericht(id) {
+  if (!confirm('Bericht verwijderen?')) return;
+  data.gastenboek = data.gastenboek.filter(b => b.id !== id);
+  save(); renderGastenboek();
+}
 
 // Init
 load();
