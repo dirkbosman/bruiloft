@@ -441,15 +441,14 @@
   onSnapshot(docRef, (snapshot) => {
     if (snapshot.exists()) {
       const remote = snapshot.data();
-      if (JSON.stringify(remote) !== JSON.stringify(window.appData)) {
-        window.appData = remote;
-        if (!isLoading) {
-          renderTaken();
-          renderBudget();
-          renderGasten();
-          renderGastenboek();
-        }
-      }
+      window.appData = remote;
+      data = remote;
+      localStorage.setItem('bruiloft_dirk_eline_v1', JSON.stringify(data));
+      renderTaken();
+      renderBudget();
+      renderGasten();
+      renderGastenboek();
+      setSyncStatus('opgeslagen');
     }
     isLoading = false;
   });
