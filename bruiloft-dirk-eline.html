@@ -336,6 +336,41 @@
   .sync-dot.error { background: var(--rose); }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(44,31,30,0.4);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .modal-box {
+    background: var(--cream);
+    border-radius: 6px;
+    padding: 1.75rem;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(44,31,30,0.2);
+  }
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+  }
+  .modal-label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.75rem 0 4px;
+  }
+
   /* Gastenboek */
   .bericht-card {
     background: #fff;
@@ -533,6 +568,39 @@
       <button class="btn btn-primary" onclick="addBericht()">+ Voeg toe</button>
     </div>
     <div id="gastenboek-lijst"></div>
+  </div>
+  <!-- BEWERK MODAL -->
+  <div id="edit-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-title">Post bewerken</div>
+      <input type="hidden" id="edit-budget-id" />
+      <label class="modal-label">Omschrijving</label>
+      <input type="text" id="edit-budget-naam" />
+      <div style="display:flex; gap:8px">
+        <div style="flex:1">
+          <label class="modal-label">Aantal (opt.)</label>
+          <input type="number" id="edit-budget-aantal" />
+        </div>
+        <div style="flex:1">
+          <label class="modal-label">Tarief (opt.)</label>
+          <input type="number" id="edit-budget-tarief" />
+        </div>
+      </div>
+      <div style="display:flex; gap:8px">
+        <div style="flex:1">
+          <label class="modal-label">Begroot (€)</label>
+          <input type="number" id="edit-budget-bedrag" />
+        </div>
+        <div style="flex:1">
+          <label class="modal-label">Betaald (€)</label>
+          <input type="number" id="edit-budget-betaald" />
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:1.25rem">
+        <button class="btn btn-primary" style="flex:1" onclick="opslaanEditBudget()">Opslaan</button>
+        <button class="btn btn-ghost" style="flex:1" onclick="sluitEditModal()">Annuleer</button>
+      </div>
+    </div>
   </div>
 </main>
 
@@ -1027,7 +1095,10 @@ function renderBudget() {
         <td class="amt amt-begroot">€${(i.bedrag||0).toLocaleString('nl-NL')}</td>
         <td class="amt amt-betaald">€${(i.betaald||0).toLocaleString('nl-NL')}</td>
         <td class="amt amt-open">€${open.toLocaleString('nl-NL')}</td>
-        <td style="text-align:right; padding-left:4px">
+        <td style="text-align:right; padding-left:4px; white-space:nowrap">
+          <button class="btn-icon" onclick="editBudget(${i.id})" title="Bewerk" style="margin-right:2px">
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M9.5 1.5L12.5 4.5L4.5 12.5L1.5 12.5L1.5 9.5L9.5 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+          </button>
           <button class="btn-icon" onclick="delBudget(${i.id})" title="Verwijder">
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
           </button>
@@ -1060,6 +1131,42 @@ function addBudget() {
   save(); renderBudget();
 }
 function delBudget(id) { if (!confirm('Post verwijderen?')) return; data.budget = data.budget.filter(i => i.id!==id); save(); renderBudget(); }
+
+function editBudget(id) {
+  const item = data.budget.find(i => i.id === id);
+  if (!item) return;
+  document.getElementById('edit-budget-id').value = id;
+  document.getElementById('edit-budget-naam').value = item.naam || '';
+  document.getElementById('edit-budget-aantal').value = item.aantal || '';
+  document.getElementById('edit-budget-tarief').value = item.tarief || '';
+  document.getElementById('edit-budget-bedrag').value = item.bedrag || '';
+  document.getElementById('edit-budget-betaald').value = item.betaald || '';
+  document.getElementById('edit-modal').style.display = 'flex';
+}
+
+function sluitEditModal() {
+  document.getElementById('edit-modal').style.display = 'none';
+}
+
+function opslaanEditBudget() {
+  const id = parseInt(document.getElementById('edit-budget-id').value);
+  const item = data.budget.find(i => i.id === id);
+  if (!item) return;
+  const naam = document.getElementById('edit-budget-naam').value.trim();
+  const aantal = parseFloat(document.getElementById('edit-budget-aantal').value) || null;
+  const tarief = parseFloat(document.getElementById('edit-budget-tarief').value) || null;
+  let bedrag = parseFloat(document.getElementById('edit-budget-bedrag').value);
+  const betaald = parseFloat(document.getElementById('edit-budget-betaald').value) || 0;
+  if (!naam) return;
+  if (isNaN(bedrag)) bedrag = (aantal && tarief) ? aantal * tarief : 0;
+  item.naam = naam;
+  item.aantal = aantal;
+  item.tarief = tarief;
+  item.bedrag = bedrag;
+  item.betaald = betaald;
+  sluitEditModal();
+  save(); renderBudget();
+}
 
 
 // --- GASTENBOEK ---
